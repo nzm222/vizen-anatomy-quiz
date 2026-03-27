@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>実践解剖生理学 ○×クイズ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa 0%, #80deea 50%, #e0f7fa 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .container { width: 100%; max-width: 480px; }
+
+    /* ===== START ===== */
+    #screen-start {
+      background: #fff; border-radius: 24px;
+      padding: 36px 28px; text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    #screen-start .emoji { font-size: 52px; margin-bottom: 12px; }
+    #screen-start h1 { font-size: 20px; color: #333; margin-bottom: 4px; line-height: 1.4; }
+    #screen-start .subtitle { font-size: 13px; color: #888; margin-bottom: 28px; }
+    .mode-title { font-size: 12px; font-weight: bold; color: #aaa; letter-spacing: 1px; margin-bottom: 12px; }
+    .mode-btn {
+      display: block; width: 100%; padding: 16px;
+      font-size: 16px; font-weight: bold; color: #fff;
+      border: none; border-radius: 16px; cursor: pointer;
+      margin-bottom: 12px; transition: transform 0.1s;
+      text-align: left; display: flex; align-items: center; gap: 12px;
+    }
+    .mode-btn:active { transform: scale(0.97); }
+    .mode-btn.random {
+      background: linear-gradient(135deg, #26c6da, #00acc1);
+      box-shadow: 0 4px 16px rgba(38,198,218,0.4);
+    }
+    .mode-btn.chapter {
+      background: linear-gradient(135deg, #7c4dff, #9c6fff);
+      box-shadow: 0 4px 16px rgba(124,77,255,0.35);
+    }
+    .mode-btn .btn-icon { font-size: 24px; }
+    .mode-btn .btn-text { flex: 1; }
+    .mode-btn .btn-main { display: block; font-size: 16px; }
+    .mode-btn .btn-sub { display: block; font-size: 11px; opacity: 0.85; font-weight: normal; margin-top: 2px; }
+
+    /* ===== CHAPTER SELECT ===== */
+    #screen-chapter { display: none; }
+    .chapter-header {
+      background: #fff; border-radius: 20px 20px 0 0;
+      padding: 20px 20px 12px; text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .chapter-header h2 { font-size: 16px; color: #333; margin-bottom: 4px; }
+    .chapter-header p { font-size: 12px; color: #aaa; }
+    .chapter-list {
+      background: #fff; border-radius: 0 0 20px 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+      margin-bottom: 12px;
+    }
+    .chapter-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px; cursor: pointer;
+      border-bottom: 1px solid #f5f5f5;
+      transition: background 0.15s;
+    }
+    .chapter-item:last-child { border-bottom: none; }
+    .chapter-item:hover { background: #f9f9f9; }
+    .chapter-item:active { background: #f0f0f0; }
+    .chapter-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #7c4dff, #9c6fff);
+      color: #fff; font-size: 11px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      shrink: 0; flex-shrink: 0;
+    }
+    .chapter-num.special { background: linear-gradient(135deg, #ff7043, #ff8a65); }
+    .chapter-info { flex: 1; }
+    .chapter-name { font-size: 14px; font-weight: bold; color: #333; line-height: 1.4; }
+    .chapter-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .chapter-arrow { font-size: 16px; color: #ccc; }
+    .back-btn {
+      display: block; width: 100%; padding: 14px;
+      font-size: 14px; font-weight: bold; color: #999;
+      background: #fff; border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    /* ===== QUIZ ===== */
+    #screen-quiz { display: none; }
+    .progress-bar-wrap {
+      background: rgba(255,255,255,0.5); border-radius: 8px;
+      height: 8px; margin-bottom: 10px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #26c6da, #00e5ff);
+      border-radius: 8px; transition: width 0.4s ease;
+    }
+    .progress-text {
+      text-align: right; font-size: 12px;
+      color: rgba(255,255,255,0.9); margin-bottom: 14px; font-weight: bold;
+    }
+    .card {
+      background: #fff; border-radius: 24px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .q-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #26c6da, #00acc1);
+      color: #fff; font-size: 11px; font-weight: bold;
+      padding: 4px 12px; border-radius: 20px;
+      margin-bottom: 8px; letter-spacing: 1px;
+    }
+    .q-chapter-badge {
+      display: inline-block;
+      font-size: 11px; color: #aaa;
+      margin-bottom: 14px; margin-left: 8px;
+    }
+    .question {
+      font-size: 17px; font-weight: bold; color: #333;
+      line-height: 1.7; margin-bottom: 32px; min-height: 90px;
+    }
+    .judge-wrap { display: flex; gap: 14px; }
+    .judge-btn {
+      flex: 1; padding: 20px 8px; font-size: 28px;
+      font-weight: bold; border: none; border-radius: 20px;
+      cursor: pointer; transition: transform 0.1s;
+    }
+    .judge-btn:active { transform: scale(0.95); }
+    .btn-maru {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      color: #fff; box-shadow: 0 4px 16px rgba(67,233,123,0.4);
+    }
+    .btn-batsu {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: #fff; box-shadow: 0 4px 16px rgba(240,147,251,0.4);
+    }
+
+    /* ===== POPUP ===== */
+    .overlay {
+      display: none; position: fixed;
+      inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 100; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .overlay.visible { display: flex; }
+    .popup {
+      background: #fff; border-radius: 24px;
+      width: 100%; max-width: 420px;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+      animation: popIn 0.25s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+    .popup-header { padding: 24px 24px 16px; text-align: center; }
+    .popup-header.correct { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+    .popup-header.wrong   { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .popup-result-icon { font-size: 48px; margin-bottom: 6px; }
+    .popup-result-label { font-size: 22px; font-weight: bold; color: #fff; }
+    .popup-body { padding: 20px 24px 24px; }
+    .popup-ans {
+      font-size: 15px; font-weight: bold; color: #333;
+      line-height: 1.6; margin-bottom: 12px;
+      padding: 12px 16px;
+      background: #f0fbff; border-radius: 12px;
+      border-left: 4px solid #26c6da;
+    }
+    .popup-hint {
+      font-size: 13px; color: #666; line-height: 1.7; margin-bottom: 20px;
+      white-space: pre-line;
+    }
+    .next-btn {
+      display: block; width: 100%; padding: 16px;
+      font-size: 16px; font-weight: bold; color: #fff;
+      background: linear-gradient(135deg, #26c6da, #00acc1);
+      border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(38,198,218,0.35);
+      transition: transform 0.1s;
+    }
+    .next-btn:active { transform: scale(0.97); }
+
+    /* ===== RESULT ===== */
+    #screen-result {
+      display: none; background: #fff; border-radius: 24px;
+      padding: 40px 28px; text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .result-emoji { font-size: 64px; margin-bottom: 16px; }
+    .result-title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 6px; }
+    .result-sub { font-size: 13px; color: #aaa; margin-bottom: 24px; }
+    .score-circle {
+      width: 150px; height: 150px; border-radius: 50%;
+      margin: 0 auto 28px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .score-circle.s { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+    .score-circle.a { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .score-circle.b { background: linear-gradient(135deg, #ffb300, #ffd54f); }
+    .score-circle.c { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .score-num { font-size: 44px; font-weight: bold; color: #fff; line-height: 1; }
+    .score-denom { font-size: 14px; color: rgba(255,255,255,0.8); }
+    .score-pct { font-size: 20px; font-weight: bold; color: #fff; margin-top: 4px; }
+    .stats { display: flex; gap: 12px; margin-bottom: 28px; }
+    .stat-box { flex: 1; padding: 14px 8px; border-radius: 16px; text-align: center; }
+    .stat-box.correct { background: #e8f5e9; }
+    .stat-box.wrong   { background: #fce4ec; }
+    .stat-num { font-size: 28px; font-weight: bold; }
+    .stat-box.correct .stat-num { color: #2e7d32; }
+    .stat-box.wrong   .stat-num { color: #c62828; }
+    .stat-label { font-size: 12px; color: #777; }
+    .result-msg { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 16px; }
+    .retry-btn {
+      display: block; width: 100%; padding: 16px;
+      font-size: 16px; font-weight: bold; color: #fff;
+      background: linear-gradient(135deg, #26c6da, #00acc1);
+      border: none; border-radius: 16px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(38,198,218,0.4);
+      transition: transform 0.1s; margin-bottom: 10px;
+    }
+    .retry-btn:active { transform: scale(0.97); }
+    .home-btn {
+      display: block; width: 100%; padding: 14px;
+      font-size: 15px; font-weight: bold; color: #888;
+      background: #f5f5f5; border: none; border-radius: 16px; cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .home-btn:active { transform: scale(0.97); }
+
+    /* ===== PAUSE ===== */
+    .pause-btn {
+      display: block; width: 100%; margin-top: 12px;
+      padding: 10px; font-size: 13px; color: #00838f;
+      background: rgba(255,255,255,0.85); border: none;
+      border-radius: 14px; cursor: pointer; letter-spacing: 0.5px;
+      font-weight: bold;
+    }
+    .pause-btn:hover { background: #fff; }
+    .pause-popup { text-align: center; }
+    .pause-popup .pause-icon { font-size: 48px; margin-bottom: 12px; }
+    .pause-popup h3 { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 6px; }
+    .pause-popup p  { font-size: 14px; color: #888; margin-bottom: 24px; }
+    .resume-btn {
+      display: block; width: 100%; padding: 16px;
+      font-size: 16px; font-weight: bold; color: #fff;
+      background: linear-gradient(135deg, #26c6da, #00acc1);
+      box-shadow: 0 4px 16px rgba(38,198,218,0.35);
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; margin-bottom: 10px;
+    }
+    .resume-btn:active { transform: scale(0.97); }
+    .quit-btn {
+      display: block; width: 100%; padding: 13px;
+      font-size: 14px; font-weight: bold; color: #f5576c;
+      background: none; border: 1px solid #fbc4cc;
+      border-radius: 14px; cursor: pointer; transition: transform 0.1s;
+    }
+    .quit-btn:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- START -->
+  <div id="screen-start">
+    <div class="emoji">🫀</div>
+    <h1>実践解剖生理学<br>○×クイズ</h1>
+    <p class="subtitle">全100問（章別）</p>
+    <p class="mode-title">モードを選んでください</p>
+    <button class="mode-btn random" onclick="startRandom()">
+      <span class="btn-icon">🎲</span>
+      <span class="btn-text">
+        <span class="btn-main">ランダム10問</span>
+        <span class="btn-sub">全100問からランダムに出題</span>
+      </span>
+    </button>
+    <button class="mode-btn chapter" onclick="showChapterSelect()">
+      <span class="btn-icon">📖</span>
+      <span class="btn-text">
+        <span class="btn-main">章ごとに解く</span>
+        <span class="btn-sub">特別回・第1回〜第10回から選択</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- CHAPTER SELECT -->
+  <div id="screen-chapter">
+    <div class="chapter-header">
+      <h2>章を選んでください</h2>
+      <p>各章の全問題が出題されます</p>
+    </div>
+    <div class="chapter-list" id="chapter-list"></div>
+    <button class="back-btn" onclick="showStart()">← もどる</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="progress-text" id="progress-text"></div>
+    <div class="card">
+      <div>
+        <span class="q-label">QUESTION</span>
+        <span class="q-chapter-badge" id="q-chapter-badge"></span>
+      </div>
+      <p class="question" id="question-text"></p>
+      <div class="judge-wrap">
+        <button class="judge-btn btn-batsu" onclick="answer(false)">✕</button>
+        <button class="judge-btn btn-maru"  onclick="answer(true)">○</button>
+      </div>
+    </div>
+    <button class="pause-btn" onclick="pauseQuiz()">⏸ 中断する</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result">
+    <div class="result-emoji" id="result-emoji"></div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-sub" id="result-sub"></div>
+    <div class="score-circle" id="score-circle">
+      <div class="score-num" id="score-num"></div>
+      <div class="score-denom" id="score-denom"></div>
+      <div class="score-pct" id="score-pct"></div>
+    </div>
+    <div class="stats">
+      <div class="stat-box correct">
+        <div class="stat-num" id="correct-count"></div>
+        <div class="stat-label">正解</div>
+      </div>
+      <div class="stat-box wrong">
+        <div class="stat-num" id="wrong-count"></div>
+        <div class="stat-label">不正解</div>
+      </div>
+    </div>
+    <p class="result-msg" id="result-msg"></p>
+    <button class="retry-btn" id="retry-btn">🔁 もう一度挑戦</button>
+    <button class="home-btn" onclick="showStart()">🏠 トップへもどる</button>
+  </div>
+
+</div>
+
+<!-- PAUSE OVERLAY -->
+<div class="overlay" id="pause-overlay">
+  <div class="popup">
+    <div class="popup-body pause-popup">
+      <div class="pause-icon">⏸</div>
+      <h3>中断中</h3>
+      <p id="pause-progress-text"></p>
+      <button class="resume-btn" onclick="resumeQuiz()">▶ 再開する</button>
+      <button class="quit-btn" onclick="quitQuiz()">✕ やめてトップへ戻る</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP -->
+<div class="overlay" id="popup-overlay">
+  <div class="popup">
+    <div class="popup-header" id="popup-header">
+      <div class="popup-result-icon" id="popup-icon"></div>
+      <div class="popup-result-label" id="popup-label"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-ans" id="popup-ans"></div>
+      <p class="popup-hint" id="popup-hint"></p>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題へ →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== 問題データ =====================
+const CHAPTERS = [
+  { id: 'special', label: '特別回', name: '顎関節の解剖と三叉神経の重要性', special: true },
+  { id: 'ch1',  label: '第1回',  name: '骨格と関節 〜全身を支える構造と関節アプローチ〜' },
+  { id: 'ch2',  label: '第2回',  name: '筋肉・腱 〜整筋ストレッチと機能解剖〜' },
+  { id: 'ch3',  label: '第3回',  name: '血液と体液 〜むくみ・免疫のメカニズム〜' },
+  { id: 'ch4',  label: '第4回',  name: '心臓と循環器系 〜血流・リンパのメカニズム〜' },
+  { id: 'ch5',  label: '第5回',  name: '肺と呼吸器系 〜呼吸力アップで自律神経を整える〜' },
+  { id: 'ch6',  label: '第6回',  name: '肝臓と消化器系 〜内臓からのSOSを見逃さない〜' },
+  { id: 'ch7',  label: '第7回',  name: 'ホルモンと内分泌 〜心と体の繋がり・更年期〜' },
+  { id: 'ch8',  label: '第8回',  name: '生殖器と泌尿器系 〜女性ホルモンの不思議〜' },
+  { id: 'ch9',  label: '第9回',  name: '五感と感覚器系 〜お客様の「感覚」と「痛み」〜' },
+  { id: 'ch10', label: '第10回', name: '脳と神経系 〜全身を支配する神経ネットワーク〜' },
+];
+
+const ALL_Q = [
+  // ── 特別回 ──
+  { chapter:'special', q:"顎関節は耳の穴のすぐ前に位置している。", correct:true, a:"○ 正しい", hint:"一般的に顎やエラを指すことが多いですが、実際の関節は耳の穴のすぐ前にあります。ここを意識することで的確なアプローチが可能になります。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"顎を大きく開けた状態は、顎関節が脱臼している状態に近い。", correct:true, a:"○ 正しい", hint:"顎は「下に落ちてから前に出る」2段階の動きをしており、大開口時は脱臼に近い不安定な状態です。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"関節円板は人体のすべての関節に存在する。", correct:false, a:"✕ 顎や手首・膝などの特殊な関節にのみ備わっている", hint:"特殊な負担がかかる顎や手首、膝などにのみ備わっているオプショナルパーツのような軟骨です。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"顎を左右にずらしたり前に出したりしても、首の可動域や前屈のしやすさには影響しない。", correct:false, a:"✕ 首の回旋や前屈の制限に直結する", hint:"顎の位置は全身の重心や動きに深く影響を与え、首の回旋や前屈の制限に直結します。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"口を閉じる咀嚼筋の一つである「内側翼突筋」は、顎の左右の横ずれに強く関与する。", correct:true, a:"○ 正しい", hint:"左右の横ずれに強く関与するため、顎関節の不調ケアにおいて重要な筋肉です。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"咀嚼筋は瞬発力に優れた「白筋（速筋）」が圧倒的に多い。", correct:false, a:"✕ 「赤筋（遅筋）」が圧倒的に多い", hint:"咀嚼筋は持久力に優れた「赤筋（遅筋）」が圧倒的に多く、長時間働き続けることができます。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"トリガーポイントを押すと、全く違う部位に痛みが響く「関連痛（放散痛）」が起こることがある。", correct:true, a:"○ 正しい", hint:"筋肉の老廃物の塊であるトリガーポイントの特徴で、押した場所とは別の場所に痛みが飛びます。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"舌（ベロ）は上顎にべったりとついているのが正常な状態である。", correct:true, a:"○ 正しい", hint:"舌が落ちて舌骨が下垂すると、口を閉じる筋肉に過剰な負担がかかります。上顎につくのが正常です。\n※復習するには特別回の動画を見てください。" },
+  { chapter:'special', q:"三叉神経は感覚を伝えるだけで、筋肉を動かす機能は持たない。", correct:false, a:"✕ 感覚性と運動性を併せ持つ混合神経", hint:"顔の感覚を伝える「感覚性」と、咀嚼筋を動かす「運動性」を併せ持つ混合神経です。\n※復習するには特別回の動画を見てください。" },
+  // ── 第1回 ──
+  { chapter:'ch1', q:"関節で骨同士がこすれ合わないように保護しているのは「靭帯」である。", correct:false, a:"✕ 「関節軟骨」が正解", hint:"こすれ合わないように保護しているのは「関節軟骨」です。靭帯は関節が外れないように固定する組織です。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"膝に水がたまるのは、すり減った軟骨によって起こる関節内の炎症を鎮めるための身体の防衛反応である。", correct:true, a:"○ 正しい", hint:"火事を消すために水（滑液）が過剰に分泌された状態です。炎症が治まらないと水を抜いてもまた溜まります。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"ガングリオンは手首の関節包の滑液が漏れ出て袋状に溜まったものである。", correct:true, a:"○ 正しい", hint:"関節の負担がかかる部分で滑液が漏れ出てゼリー状のしこりになったものです。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"腕の重さは、片腕で体重の約10%である。", correct:false, a:"✕ 片腕で体重の約6%が正解（50kgの人で約3kg）", hint:"腕の重さは片腕で体重の約6%です（50kgの人で約3kg）。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"重い腕がずり落ちないよう、体幹と繋ぎ止めている唯一の骨は「鎖骨」である。", correct:true, a:"○ 正しい", hint:"鎖骨は腕の重さを必死に支え、背骨へと逃がす「縁の下の力持ち」です。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"関節モビリゼーションは、関節を解剖学的な限界を超えて大きく動かす手技である。", correct:false, a:"✕ 解剖学的な限界を超えない範囲で微細な刺激を加える安全な手技", hint:"解剖学的な限界を超えない範囲で、関節包などに「微細な刺激（スライドや牽引）」を加える安全な手技です。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"肩関節や股関節は、あらゆる方向に動く多軸性の「球関節」である。", correct:true, a:"○ 正しい", hint:"球関節は多軸性であり、前後、左右、斜めなど様々な方向に動かすことができます。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"手首の関節は「楕円関節」であり、縦と横の2軸性の動きを持つ。", correct:true, a:"○ 正しい", hint:"手首（橈骨と手根骨の間）は楕円関節で、屈曲・伸展、橈屈・尺屈の2方向の動きがあります。\n※復習するには第1回の動画を見てください。" },
+  { chapter:'ch1', q:"首の「回旋（振り向く動き）」の大部分は、頸椎の1番（環椎）と2番（軸椎）の関節で行われる。", correct:true, a:"○ 正しい", hint:"首の回旋の約半分は、車軸関節である頸椎1番と2番の間で行われます。\n※復習するには第1回の動画を見てください。" },
+  // ── 第2回 ──
+  { chapter:'ch2', q:"筋肉には大きく分けて、骨格筋、平滑筋、心筋の3種類がある。", correct:true, a:"○ 正しい", hint:"意志で動かせる骨格筋、内臓を動かす平滑筋、心臓を動かす心筋の3つに分類されます。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"骨格筋の細胞が完全に生まれ変わる（ターンオーバー）には、約28日かかる。", correct:false, a:"✕ 骨格筋は2ヶ月〜7ヶ月。約28日なのは心筋", hint:"骨格筋は2ヶ月〜7ヶ月かかります。約28日なのは心筋です。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"筋収縮は、太い「ミオシン」と細い「アクチン」がスライドして重なり合うことで起こる。", correct:true, a:"○ 正しい", hint:"筋肉はゴムのように伸び縮みするのではなく、線維が滑り込んで重なる「滑走説」で説明されます。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"筋肉の収縮を引き起こすスイッチとなる物質は「鉄イオン」である。", correct:false, a:"✕ 「カルシウムイオン」が正解", hint:"収縮の引き金となるのは筋小胞体から放出される「カルシウムイオン」です。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"持久力に優れ、ミトコンドリアが豊富なのは「白筋（速筋）」である。", correct:false, a:"✕ 「赤筋（遅筋）」が正解", hint:"持久力に優れミトコンドリアが豊富なのはマグロタイプの「赤筋（遅筋）」です。白筋は瞬発力に優れます。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"筋肉を大きくする「筋肥大」を目的とする場合、低負荷で15回以上反復するトレーニングが最適である。", correct:false, a:"✕ 筋肥大には6〜12回で限界を迎える「高負荷」のトレーニングが必要", hint:"筋肥大には6〜12回で限界を迎える「高負荷」のトレーニングが必要です。低負荷は筋持久力アップに有効です。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"表情筋は、関節をまたいで骨と骨をつなぐ骨格筋の一種である。", correct:false, a:"✕ 表情筋は骨から直接「皮膚」についている特殊な「皮筋（ひきん）」", hint:"表情筋は骨から直接「皮膚」についている特殊な「皮筋（ひきん）」です。皮膚より大きく伸縮します。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"骨盤が前方回転（前傾）すると、うつ伏せになった時に脚の長さが長く見える。", correct:true, a:"○ 正しい", hint:"前ももや背中が硬く骨盤が前傾すると脚が長く見え、逆に裏ももが硬く後傾すると短く見えます。\n※復習するには第2回の動画を見てください。" },
+  { chapter:'ch2', q:"人体で最も体積が大きい筋肉は「大胸筋」である。", correct:false, a:"✕ 最も大きいのは大腿四頭筋（前もも）", hint:"最も大きい筋肉は前ももの「大腿四頭筋」で、次いでふくらはぎ（下腿三頭筋）、お尻（大臀筋）と続きます。\n※復習するには第2回の動画を見てください。" },
+  // ── 第3回 ──
+  { chapter:'ch3', q:"動脈は静脈に比べて血圧が高く勢いがあるため、身体の深い部分を走っている。", correct:true, a:"○ 正しい", hint:"動脈は損傷すると危険なため深い部分を走り、静脈は勢いが弱いため身体の浅い部分を走ります。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"マッサージで血流を促進させる最大の目的は、勢いが強い動脈の働きを助けることである。", correct:false, a:"✕ 勢いが弱い「静脈（戻るルート）」の排出を助けるのが目的", hint:"動脈は自らの勢いで流れるため外からの刺激は不要です。マッサージは勢いが弱い「静脈（戻るルート）」の排出を助けるのが目的です。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"寿命を迎えた赤血球は破壊されて「ビリルビン」となり、便に混ざって排出される。", correct:true, a:"○ 正しい", hint:"酸素を運ぶ赤血球は寿命約120日で破壊され、ビリルビンとして排出されます。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"健康な便が茶色いのは、赤血球の死骸が正しく処理されている証拠である。", correct:true, a:"○ 正しい", hint:"ビリルビンが便に混ざることで便は茶色になります。肝臓などで排出されないと白色便になります。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"出血を止める接着剤（フィブリノーゲン）は、腎臓で作られるタンパク質である。", correct:false, a:"✕ 「肝臓」で作られる", hint:"フィブリノーゲンは「肝臓」で作られます。そのため肝機能が低下すると青あざができやすくなります。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"血管は、水や小さな物質だけを通す網戸のような「半透膜」である。", correct:true, a:"○ 正しい", hint:"人間の細胞膜や血管壁は半透膜であり、物質濃度の濃い方へ水分が移動する「拡散・浸透」が起こります。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"タンパク質の一種であるアルブミンは、血管内に水分を留める働きがある。", correct:true, a:"○ 正しい", hint:"肝臓で作られるアルブミンは極めて水を引き寄せる力が強く、血管から水分が外に漏れ出さないように保っています。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"肝臓や腎臓が弱るとアルブミンが不足し、深刻なむくみを引き起こす。", correct:true, a:"○ 正しい", hint:"アルブミンが不足すると血管内に水分を留めておけず、外に漏れ出して病的なむくみとなります。\n※復習するには第3回の動画を見てください。" },
+  { chapter:'ch3', q:"免疫システムにおいて、敵の弱点に合わせた「抗体」を作る工場はマクロファージである。", correct:false, a:"✕ 抗体を作るのは「B細胞（Bリンパ球）」", hint:"抗体を作るのは「B細胞（Bリンパ球）」です。マクロファージは異物を食べて情報を知らせる役割です。\n※復習するには第3回の動画を見てください。" },
+  // ── 第4回 ──
+  { chapter:'ch4', q:"全身から二酸化炭素を回収した血液は、心臓を通った後に肺へ送られて綺麗になる（肺循環）。", correct:true, a:"○ 正しい", hint:"心臓から全身へ行くルートを「体循環」、心臓から肺へ行って戻るルートを「肺循環」と呼びます。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"緊張型頭痛は、血管が拡張しすぎるため、冷やすのが効果的である。", correct:false, a:"✕ 首や肩の筋肉が硬くなり血流が滞るため、温めやマッサージが有効", hint:"緊張型頭痛は首や肩の筋肉が硬くなり血流が滞ることで起こるため、温めやマッサージが有効です。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"交感神経が優位になると末梢血管が拡張し、血流量が増加する。", correct:false, a:"✕ 交感神経優位では血管は「収縮」し血流量は減る", hint:"交感神経優位では血管は「収縮」し、勢いは強くなりますが血流量は減ります。拡張するのは副交感神経です。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"痛み止めの薬を常用していると、副作用として副交感神経が優位になりやすい。", correct:false, a:"✕ 多くの場合「交感神経が優位（擬似的な緊張状態）」になりやすい", hint:"薬の副作用として、多くの場合「交感神経が優位（擬似的な緊張状態）」になりやすい傾向があります。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"全身のリンパ液は、最終的に鎖骨の奥にある「静脈角」で静脈に合流する。", correct:true, a:"○ 正しい", hint:"リンパ管で回収された老廃物や水分は、最終的に静脈角で血液に戻ります。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"両脚や左半身のリンパ液は、「右の静脈角」へ戻る。", correct:false, a:"✕ 両脚と左半身すべては「左の静脈角」に戻る", hint:"両脚と左半身すべては「左の静脈角」に戻ります。右半身の上部だけが右の静脈角に戻ります。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"最も細い毛細リンパ管には逆流を防ぐ「弁」がないため、リンパ液は非常に滞りやすい。", correct:true, a:"○ 正しい", hint:"毛細リンパ管には弁がないため、自力で流れる力が弱く滞りやすい性質があります。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"効果的なリンパドレナージュを行う際は、まずリンパ節の渋滞を解消するために周辺を緩めることが大切である。", correct:true, a:"○ 正しい", hint:"リンパ節は関所であり通過に時間がかかるため、先にリンパ節周辺を開通させる必要があります。\n※復習するには第4回の動画を見てください。" },
+  { chapter:'ch4', q:"太い筋肉の深部にアプローチして血流を促すには、関節を無理に動かすストレッチが最も効果的である。", correct:false, a:"✕ 関節に負担をかけない「振動（揺らし）」が非常に効果的", hint:"深部の血流を促すには、関節に負担をかけない「振動（揺らし）」が非常に効果的です。\n※復習するには第4回の動画を見てください。" },
+  // ── 第5回 ──
+  { chapter:'ch5', q:"肺の中で行われる酸素と二酸化炭素のガス交換を「内呼吸」という。", correct:false, a:"✕ 肺で行われるのは「外呼吸」。全身の細胞で行われるのが「内呼吸」", hint:"肺で行われるのは「外呼吸」です。全身の細胞で行われるガス交換を「内呼吸」と呼びます。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"鼻呼吸は天然の加湿器・フィルターを通るため、口呼吸に比べて免疫力を高く保ちやすい。", correct:true, a:"○ 正しい", hint:"口呼吸はフィルターを通さず冷たく乾燥した空気が入るため、免疫力低下の原因となります。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"腹圧が高い状態とは、お腹の中の風船がパンパンに膨らみ、内臓や頭の重さをしっかり支えている状態である。", correct:true, a:"○ 正しい", hint:"腹圧が高いと姿勢が安定し、腰や首の筋肉への過剰な負担を防ぎます。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"慢性的な腰痛の根本原因が「腹圧の低さ」にあることは医学的にあり得ない。", correct:false, a:"✕ 腹圧の低さは腰痛の根本原因になる", hint:"腹圧が低いと体が潰れそうになり、それを防ごうと腰の筋肉が過剰に頑張るため、腰痛の根本原因になります。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"腹圧を高める「筋肉のコルセット」の天井部分は、呼吸を司る「横隔膜」である。", correct:true, a:"○ 正しい", hint:"天井が横隔膜、前壁が腹筋群、後ろが背筋群、底が骨盤底筋で腹圧を保ちます。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"胸式呼吸は、肋骨自体がゴムのように伸び縮みして行われる。", correct:false, a:"✕ 肋骨自体は伸び縮みせず、関節を支点に「バケツの持ち手」のように上に持ち上がる動き", hint:"肋骨自体は伸び縮みせず、関節を支点にして「バケツの持ち手」のように上に持ち上がる動きをします。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"胸式呼吸をスムーズに行うためには、背中（胸椎周り）の柔軟性が不可欠である。", correct:true, a:"○ 正しい", hint:"肋骨は背骨（胸椎）と関節で繋がっているため、背中が凝り固まっていると肋骨が動かず胸式呼吸ができません。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"腹圧が低下している人は、施術者が下部肋骨を持ち上げると腹圧が疑似的に高まり首の回旋がしやすくなる。", correct:true, a:"○ 正しい", hint:"腹圧が安定することで首や肩の筋肉の無駄な緊張が解け、可動域が広がります。\n※復習するには第5回の動画を見てください。" },
+  { chapter:'ch5', q:"妊婦さんは妊娠後期になると、腹圧が下がるため胸式呼吸ができなくなる。", correct:false, a:"✕ 妊婦さんは赤ちゃんによって腹圧が高まり、腹式呼吸ができなくなるため「胸式呼吸」になる", hint:"妊婦さんは赤ちゃんによって腹圧が高まり、腹式呼吸ができなくなるため「胸式呼吸」になります。\n※復習するには第5回の動画を見てください。" },
+  // ── 第6回 ──
+  { chapter:'ch6', q:"消化の最大の目的は、食べたものを極小のパーツに切り分けて体内に「吸収」することである。", correct:true, a:"○ 正しい", hint:"食べたものは大きすぎて腸の壁を通過できないため、消化液で切り分けて吸収できるようにします。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"食道には痛覚や温度感覚がないため、食道がんは痛みを感じにくく発見が遅れやすい。", correct:true, a:"○ 正しい", hint:"熱いものを飲んで胸が熱く感じるのは周囲の組織の感覚であり、食道自体には感覚がありません。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"胃はタンパク質を消化する強酸性の胃酸を分泌するが、胃壁は自ら分泌する「粘液」によって守られている。", correct:true, a:"○ 正しい", hint:"胃壁が溶けないのは粘液のバリアのおかげです。これが減ると胃潰瘍になります。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"胃から出た強酸性の食べ物は、ファーター乳頭から出る膵液によって酸性のまま腸へ送られる。", correct:false, a:"✕ ファーター乳頭から出る膵液（アルカリ性）と胆汁によって「中和」されてから腸へ進む", hint:"ファーター乳頭から出る膵液（アルカリ性）と胆汁によって一気に「中和」されてから腸へ進みます。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"胃腸で吸収されたすべての栄養は、門脈を通って最初に「肝臓」へ集まる。", correct:true, a:"○ 正しい", hint:"肝臓は体内の巨大な大工場であり、栄養や物質がすべて最初に集まります。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"肝臓はアルコールや薬など、体に害を及ぼす物質を解毒して無毒化する働きがある。", correct:true, a:"○ 正しい", hint:"肝臓の重要な機能の一つです。薬の常用が肝臓に負担をかけるのはこのためです。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"便の色が白っぽく抜けてしまう（白色便）のは、胆汁が正しく腸に流れていないサインである。", correct:true, a:"○ 正しい", hint:"胆管が詰まるなどして胆汁（ビリルビン）が腸に流れないと、便は白くなり、皮膚が黄色くなる黄疸が現れます。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"大腸の右側（上行結腸）は、重力に従って便が下りるため、便が滞りにくい場所である。", correct:false, a:"✕ 上行結腸は重力に「逆らって」便を持ち上げる「上り坂」のため非常に便が滞りやすい", hint:"上行結腸は重力に「逆らって」便を持ち上げる「上り坂」のため、非常に便が滞りやすい場所です。\n※復習するには第6回の動画を見てください。" },
+  { chapter:'ch6', q:"排便を我慢するための「外肛門括約筋」は体性神経（運動神経）支配であり、自分の意志でコントロールできる。", correct:true, a:"○ 正しい", hint:"無意識で動く内肛門括約筋（自律神経）と、意識で動かせる外肛門括約筋の二重構造になっています。\n※復習するには第6回の動画を見てください。" },
+  // ── 第7回 ──
+  { chapter:'ch7', q:"神経は情報をゆっくり広く伝え、ホルモンは特定の場所に情報を伝える「電話」のような役割である。", correct:false, a:"✕ 逆。神経が「電話」、ホルモンが「手紙」", hint:"神経が一瞬で伝える「電話」で、ホルモンが血液に乗ってゆっくり広く伝える「手紙」の役割です。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"ホルモンは専用の道（導管）を持たず、血管に直接分泌されて血流に乗って運ばれる。", correct:true, a:"○ 正しい", hint:"これを「内分泌」と呼びます。血流が悪いとホルモンが目的地に届きません。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"マッサージで血流を良くすることは、ホルモンを全身に正しく届けるための土台作りになる。", correct:true, a:"○ 正しい", hint:"ホルモンは血流で運ばれるため、循環を良くすることはホルモンバランスを整える上で不可欠です。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"自律神経と内分泌の「親玉（社長）」と呼ばれ、全身のホルモン指令のトップに立つ脳の部位は「脳下垂体」である。", correct:false, a:"✕ 親玉は「視床下部」。視床下部が部長である脳下垂体に指令を出す", hint:"親玉は「視床下部」です。視床下部が部長である脳下垂体に指令を出します。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"視床下部は、血液中を流れるホルモン量を見て「もっと出せ」「もう止めて」と指令を調整するフィードバック機能を持つ。", correct:true, a:"○ 正しい", hint:"このフィードバックシステムを正常に働かせるためにも血流の良さが重要です。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"視床下部は感情（情動）や本能と密接に関わるエリアにあるため、ストレスや不安がホルモンバランスを乱す原因になる。", correct:true, a:"○ 正しい", hint:"過度なストレスやネガティブな感情の揺れは、視床下部を通じて直接ホルモンの指令を乱します。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"甲状腺ホルモンが過剰分泌されると、代謝が上がりすぎて異常に汗をかいたり痩せたりするバセドウ病などの原因になる。", correct:true, a:"○ 正しい", hint:"逆に分泌が少ないと極端な冷えや疲労感が出ます。これらは更年期症状と間違えられやすい特徴があります。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"女性の体内にも男性ホルモン（アンドロゲン）は、卵巣から分泌されている。", correct:false, a:"✕ 女性の男性ホルモンは「副腎」から分泌されている", hint:"女性の男性ホルモンは「副腎」から分泌されています。更年期以降はこれを原料に女性ホルモンを作るため副腎ケアが重要です。\n※復習するには第7回の動画を見てください。" },
+  { chapter:'ch7', q:"幸せホルモンと呼ばれる「セロトニン」は、夜に良質な睡眠を作るホルモン「メラトニン」の原料になる。", correct:true, a:"○ 正しい", hint:"昼間にセロトニン（原料：トリプトファン）をしっかり出しておくことが、夜の深い眠りに直結します。\n※復習するには第7回の動画を見てください。" },
+  // ── 第8回 ──
+  { chapter:'ch8', q:"女性は男性に比べて尿道が長いため、大腸菌などの細菌が侵入しにくく膀胱炎になりにくい。", correct:false, a:"✕ 女性の尿道は約4cmと男性より短く、膀胱炎になりやすい構造", hint:"女性の尿道は約4cmと男性（約20cm）に比べて短く、肛門とも近いため細菌感染（膀胱炎）になりやすい構造です。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"子宮と直腸の間にある「ダグラス窩」には、腹膜炎などで腹腔内に出血や水が溜まった時に真っ先に溜まりやすい。", correct:true, a:"○ 正しい", hint:"骨盤内の深いくぼみであり、異常を知らせるサインとなる場所です。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"卵子を作り出す「卵巣」と子宮へ運ぶ「卵管」は、直接パイプで完全に繋がっている。", correct:false, a:"✕ 直接繋がっておらず、排卵された卵子は一度腹腔内に放たれ、それを卵管が吸い込む", hint:"直接繋がっておらず、排卵された卵子は一度腹腔内に放たれ、それを卵管が吸い込みます。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"卵胞が育つと分泌される「エストロゲン（女性ホルモン）」は、脳に届くと排卵の準備完了の合図となる。", correct:true, a:"○ 正しい", hint:"血流に乗って脳（視床下部・下垂体）に届くことで、ホルモンの連携が行われます。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"排卵後の黄体から分泌される「プロゲステロン」は、子宮に受精卵を迎えるためのベッド（内膜）を分厚くする指令を出す。", correct:true, a:"○ 正しい", hint:"妊娠しなかった場合、これらのホルモンが急減し、内膜が剥がれ落ちるのが月経（生理）です。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"妊娠中は出産に向けて骨盤を緩めるホルモンが出るが、全身の関節の靭帯まで緩んでしまうため負担がかかりやすい。", correct:true, a:"○ 正しい", hint:"そのため妊婦さんは腰痛や膝のグラつきが起きやすく、施術には優しいケアが必要です。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"腎臓は、1分間に約1200リットルもの血液が流れ込み、老廃物をろ過する巨大なフィルターである。", correct:true, a:"○ 正しい", hint:"背骨側（後腹膜器官）にあり、血液中の老廃物をろ過して尿を作ります。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"腎臓でろ過された水分のうち、約半分がそのまま尿として体外へ排出される。", correct:false, a:"✕ ろ過された水分の99%は体に必要な水分や栄養素として「再吸収」される", hint:"ろ過された水分の99%は体に必要な水分や栄養素として「再吸収」され、不要なごく一部だけが尿になります。\n※復習するには第8回の動画を見てください。" },
+  { chapter:'ch8', q:"糖尿病の合併症である「神経障害」が進行すると、足先の痛みや温度を感じなくなり、傷から壊死を引き起こす危険がある。", correct:true, a:"○ 正しい", hint:"痛みがないため足の擦れなどに気づかず、最悪の場合は足の切断に至る恐ろしい合併症です。\n※復習するには第8回の動画を見てください。" },
+  // ── 第9回 ──
+  { chapter:'ch9', q:"目を閉じていても自分の手足の位置がわかる感覚は「特殊感覚」に分類される。", correct:false, a:"✕ 「体性感覚（深部感覚）」に分類される", hint:"深部感覚と呼ばれ、触覚・痛覚などと同じ「体性感覚」に分類されます。特殊感覚は視覚・聴覚などの五感です。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"人間の網膜には視神経が束になって脳へ向かう部分があり、そこには視細胞がないため誰にでも「盲点」が存在する。", correct:true, a:"○ 正しい", hint:"マリオットの盲点と呼ばれ、片目で見ると必ず見えない部分が存在します。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"乗り物酔いは、耳の三半規管が感じる揺れと目から入る視覚情報が一致しないことで脳が混乱して引き起こされる。", correct:true, a:"○ 正しい", hint:"揺れているのに「揺れていない」視覚情報が入るなど、センサーの不一致が不快感（酔い）を生みます。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"耳たぶは脂肪と血管しかなく血流が乏しいため、人体の中で最も体温が高い場所である。", correct:false, a:"✕ 人体で最も体温が「低い」場所", hint:"人体で最も体温が「低い」場所です。ここを温めることで全身の血流や体温も上がりやすくなります。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"指先や舌は1ミリの感覚の違いもわかるほど敏感だが、背中や太ももは感覚の解像度が低く大雑把である。", correct:true, a:"○ 正しい", hint:"2点識別覚の違いです。そのため背中へのタッチは大きく、顔や腕は繊細に行うのが基本です。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"冷湿布を貼ると、メントールの成分によって実際に患部の温度が下がり炎症を抑える。", correct:false, a:"✕ メントールは脳の感覚センサーを「冷たい」と誤作動させているだけで、実際には温度は下がらない", hint:"メントールは脳の感覚センサーを「冷たい」と誤作動させているだけで、実際に温度は下がりません。本当に冷やすには氷が必要です。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"くすぐったいという感覚は、「自分がコントロールできない不安や恐怖」から生まれることが多い。", correct:true, a:"○ 正しい", hint:"そのため、お客様自身の手を挟ませるなどしてコントロール権（安心感）を与えるとくすぐったさが解消します。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"慢性痛が長引く原因には、患部の損傷だけでなく過去の経験や不安などの「認知的・情動的側面」が大きく関わっている。", correct:true, a:"○ 正しい", hint:"「きっと一生治らない」といった破局的思考（カタストロファイジング）が痛みを増幅させます。\n※復習するには第9回の動画を見てください。" },
+  { chapter:'ch9', q:"お客様の不安を取り除くには、相手のコミュニケーションタイプ（価値観）に合わせて言葉がけを変えることが有効である。", correct:true, a:"○ 正しい", hint:"結果重視、データ重視、楽しさ重視など、相手の価値観を知ることで信頼関係を築きやすくなります。\n※復習するには第9回の動画を見てください。" },
+  // ── 第10回 ──
+  { chapter:'ch10', q:"神経系において、「中枢神経系」に分類されるのは、脳と脊髄の2つだけである。", correct:true, a:"○ 正しい", hint:"思考や判断を行う中枢神経はこの2つだけで、それ以外の情報を伝える神経はすべて「末梢神経」に分類されます。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"末梢神経は、自ら思考や判断を行い、全身の筋肉や臓器に独自の命令を出す役割を持っている。", correct:false, a:"✕ 末梢神経は中枢神経からの命令を「伝える」または全身の情報を「報告する」だけの役割", hint:"末梢神経は中枢神経（脳・脊髄）からの命令を「伝える」、または全身の情報を「報告する」だけの役割です。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"筋肉の不調（凝りや姿勢の悪さ）は、筋肉自体の問題よりも、脳と筋肉の間の「神経筋制御（情報のやり取り）」が上手くいっていないことが根本原因であることが多い。", correct:true, a:"○ 正しい", hint:"筋肉は脳の命令で動いているため、神経伝達の乱れが不調を引き起こします。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"固有受容感覚（プロプリオセプション）とは、筋肉が自分の伸び縮みや位置情報を脳に報告するセンサーのことである。", correct:true, a:"○ 正しい", hint:"この感覚が鈍ると、無意識で体をかばって凝り固まったり、ケガをしやすくなったりします。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"片足立ちをして目を閉じた瞬間に極端にバランスを崩す人は、自分の体の感覚センサーが鈍り、視覚情報に頼りすぎているサインである。", correct:true, a:"○ 正しい", hint:"視覚に頼りすぎていると、見えない部分の危険に対応できずケガのリスクが高まります。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"椎間板ヘルニアは、椎間板が飛び出しただけで必ず激しい痛みやしびれを感じる病気である。", correct:false, a:"✕ 飛び出したものが近くの「神経に触れる」ことで初めて痛みやしびれが発生する", hint:"椎間板自体には神経がないため、飛び出したものが近くの「神経に触れる」ことで初めて痛みやしびれが発生します。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"坐骨神経は人体で最も太い末梢神経であり、お尻の奥深くにある「梨状筋」の下の隙間を通っている。", correct:true, a:"○ 正しい", hint:"そのため、梨状筋が硬くなると坐骨神経痛（しびれ）を引き起こしやすくなります。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"梨状筋が硬くなると、神経だけでなく太い血管も圧迫されるため、足の冷えやむくみの原因にもなる。", correct:true, a:"○ 正しい", hint:"梨状筋の隙間には神経と動静脈が通っているため、血流障害も併発します。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"施術の際、うつ伏せが苦手な人を仰向けに寝かせれば、どんな人でも必ず副交感神経が優位になりリラックスできる。", correct:false, a:"✕ 仰向けでも「腸腰筋」が硬いと腰が反り、交感神経優位（緊張状態）になることがある", hint:"仰向けでも腸腰筋が硬いと腰が反り、無理な姿勢を筋肉が支えるため交感神経優位（緊張状態）になります。\n※復習するには第10回の動画を見てください。" },
+  { chapter:'ch10', q:"究極のリラックス姿勢を作るには、解剖学的な「正しい姿勢」よりも、お客様自身が「今一番楽だ」と感じる姿勢（快の法則）を優先することが重要である。", correct:true, a:"○ 正しい", hint:"クッションなどで隙間を埋め、筋肉が脱力できた時に初めて副交感神経が優位になり、施術効果が高まります。\n※復習するには第10回の動画を見てください。" },
+];
+
+// ===================== 状態管理 =====================
+let currentQuestions = [];
+let currentIndex = 0;
+let correctCount = 0;
+let currentMode = '';
+let currentChapterId = '';
+
+function show(id) {
+  ['screen-start','screen-chapter','screen-quiz','screen-result'].forEach(s => {
+    document.getElementById(s).style.display = 'none';
+  });
+  document.getElementById(id).style.display = 'block';
+}
+
+function showStart() {
+  show('screen-start');
+}
+
+function showChapterSelect() {
+  buildChapterList();
+  show('screen-chapter');
+}
+
+function buildChapterList() {
+  const list = document.getElementById('chapter-list');
+  list.innerHTML = '';
+  CHAPTERS.forEach(ch => {
+    const qs = ALL_Q.filter(q => q.chapter === ch.id);
+    const item = document.createElement('div');
+    item.className = 'chapter-item';
+    item.onclick = () => startChapter(ch.id);
+    item.innerHTML = `
+      <div class="chapter-num ${ch.special ? 'special' : ''}">${ch.special ? '特' : ch.label.replace('第','').replace('回','')}</div>
+      <div class="chapter-info">
+        <div class="chapter-name">${ch.label}：${ch.name.split('〜')[0].trim()}</div>
+        <div class="chapter-sub">全${qs.length}問</div>
+      </div>
+      <div class="chapter-arrow">›</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function startRandom() {
+  currentMode = 'random';
+  const shuffled = [...ALL_Q].sort(() => Math.random() - 0.5);
+  currentQuestions = shuffled.slice(0, 10);
+  startQuiz();
+}
+
+function startChapter(chapterId) {
+  currentMode = 'chapter';
+  currentChapterId = chapterId;
+  currentQuestions = ALL_Q.filter(q => q.chapter === chapterId);
+  startQuiz();
+}
+
+function startQuiz() {
+  currentIndex = 0;
+  correctCount = 0;
+  show('screen-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = currentQuestions[currentIndex];
+  const total = currentQuestions.length;
+  const pct = (currentIndex / total) * 100;
+
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${currentIndex + 1} / ${total}`;
+  document.getElementById('question-text').textContent = q.q;
+
+  const ch = CHAPTERS.find(c => c.id === q.chapter);
+  document.getElementById('q-chapter-badge').textContent = ch ? ch.label : '';
+}
+
+function answer(userAnswer) {
+  const q = currentQuestions[currentIndex];
+  const isCorrect = (userAnswer === q.correct);
+  if (isCorrect) correctCount++;
+
+  const header = document.getElementById('popup-header');
+  const icon = document.getElementById('popup-icon');
+  const label = document.getElementById('popup-label');
+  const ans = document.getElementById('popup-ans');
+  const hint = document.getElementById('popup-hint');
+  const btn = document.getElementById('next-btn');
+
+  header.className = 'popup-header ' + (isCorrect ? 'correct' : 'wrong');
+  icon.textContent = isCorrect ? '⭕️' : '❌';
+  label.textContent = isCorrect ? '正解！' : '不正解…';
+  ans.textContent = '正解：' + q.a;
+  hint.textContent = q.hint;
+
+  const isLast = currentIndex >= currentQuestions.length - 1;
+  btn.textContent = isLast ? '結果を見る →' : '次の問題へ →';
+
+  document.getElementById('popup-overlay').classList.add('visible');
+}
+
+function nextQuestion() {
+  document.getElementById('popup-overlay').classList.remove('visible');
+  currentIndex++;
+  if (currentIndex >= currentQuestions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  show('screen-result');
+  const total = currentQuestions.length;
+  const pct = Math.round((correctCount / total) * 100);
+
+  let rank, emoji, title, msg;
+  if (pct >= 90) { rank = 's'; emoji = '🏆'; title = '完璧！'; msg = '素晴らしい理解度です！この調子で知識を定着させましょう。'; }
+  else if (pct >= 70) { rank = 'a'; emoji = '🌟'; title = 'よくできました！'; msg = '高い理解度です！間違えた問題を復習してさらに完璧に。'; }
+  else if (pct >= 50) { rank = 'b'; emoji = '📚'; title = 'もう少し！'; msg = '基礎は押さえています。間違えた問題を重点的に復習しましょう。'; }
+  else { rank = 'c'; emoji = '💪'; title = 'もっと頑張ろう！'; msg = '動画を見直して、もう一度チャレンジしてみましょう！'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = title;
+
+  if (currentMode === 'chapter') {
+    const ch = CHAPTERS.find(c => c.id === currentChapterId);
+    document.getElementById('result-sub').textContent = (ch ? ch.label : '') + '：全' + total + '問 お疲れさまでした！';
+  } else {
+    document.getElementById('result-sub').textContent = 'ランダム' + total + '問 お疲れさまでした！';
+  }
+
+  const circle = document.getElementById('score-circle');
+  circle.className = 'score-circle ' + rank;
+  document.getElementById('score-num').textContent = correctCount;
+  document.getElementById('score-denom').textContent = '/ ' + total + '問';
+  document.getElementById('score-pct').textContent = pct + '%';
+  document.getElementById('correct-count').textContent = correctCount;
+  document.getElementById('wrong-count').textContent = total - correctCount;
+  document.getElementById('result-msg').textContent = msg;
+
+  const retryBtn = document.getElementById('retry-btn');
+  retryBtn.onclick = () => {
+    if (currentMode === 'random') startRandom();
+    else startChapter(currentChapterId);
+  };
+}
+
+function pauseQuiz() {
+  document.getElementById('pause-progress-text').textContent =
+    currentIndex + ' / ' + currentQuestions.length + ' 問目まで回答済み';
+  document.getElementById('pause-overlay').classList.add('visible');
+}
+
+function resumeQuiz() {
+  document.getElementById('pause-overlay').classList.remove('visible');
+}
+
+function quitQuiz() {
+  document.getElementById('pause-overlay').classList.remove('visible');
+  showStart();
+}
+</script>
+</body>
+</html>
